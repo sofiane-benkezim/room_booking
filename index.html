@@ -668,6 +668,7 @@
             document.getElementById('booking-modal').classList.add('hidden');
         }
 
+   // Handle Booking Form Submit (Modified for Supabase)
 async function handleBookingSubmit(event) {
     event.preventDefault();
 
@@ -675,33 +676,74 @@ async function handleBookingSubmit(event) {
     const roomName = document.getElementById('modal-room-name').innerText;
     const building = document.getElementById('modal-room-building').innerText;
     const date = document.getElementById('modal-room-date').innerText;
-    const timeslot = document.getElementById('modal-room-time').innerText;
-
+    const timeSlot = document.getElementById('modal-room-time').innerText;
+    
     const studentName = document.getElementById('student-name').value;
     const studentEmail = document.getElementById('student-email').value;
     const purpose = document.getElementById('booking-purpose').value;
 
-    // 1. التحقق والحفظ في قاعدة بيانات Supabase أولاً
-    const isSuccess = await window.bookRoomToSupabase(roomId, studentName, date, timeslot);
-
-    if (!isSuccess) {
-        return; // توقف العملية إذا كانت القاعة محجوزة مسبقاً أو حدث خطأ
+    if (isRoomBooked(roomId, date, timeSlot)) {
+        alert('عذراً، تم حجز القاعة في هذه الفترة مسبقاً!');
+        return;
     }
 
-    // 2. إذا نجح الحجز سحابياً، أكمل العمليات المحلية للموقع
+    if (window.supabaseClient) {
+        const { error } = await window.supabaseClient.from('bookings').insert([{
+            room_id: roomId,
+            room_name: roomName,
+            building: building,
+            date: date,
+            time_slot: timeSlot,
+            user_name: studentName,
+            student_email: studentEmail,
+            purpose: purpose
+        }]);
+
+        if (error) {
+            console.error('Supabase Error:', error);
+            alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
+            return;
+        }
+    }
+
     const newBooking = {
         id: 'b-' + Date.now(),
         roomId,
         roomName,
         building,
         date,
-        timeSlot: timeslot,
+        timeSlot,
         studentName,
         studentEmail,
         purpose
     };
 
-    let bookings = JSON.parse(localStorage.getItem('enstp_bookings') || '[]');
+    bookings.push(newBooking);
+    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
+
+    closeModal();
+    applyFilters();
+    updateBookingBadge();
+
+    document.getElementById('student-name').value = '';
+    document.getElementById('student-email').value = '';
+
+    const lang = translations[currentLang];
+    showToast(lang.alertSuccess);
+}
+
+    const newBooking = {
+        id: bookingId,
+        roomId,
+        roomName,
+        building,
+        date,
+        timeSlot,
+        studentName,
+        studentEmail,
+        purpose
+    };
+
     bookings.push(newBooking);
     localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
 
@@ -716,46 +758,24 @@ async function handleBookingSubmit(event) {
     // Notification message
     const lang = translations[currentLang];
     showToast(lang.alertSuccess);
-}
 
-  
+
+// Cancel Booking Action (Modified for Supabase)
+async function cancelBooking(bookingId) {
+    if (window.supabaseClient) {
+        await window.supabaseClient.from('enstp_bookings').delete().eq('id', bookingId);
+    }
+
+    bookings = bookings.filter(b => b.id !== bookingId);
+    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
     
-    // تحديث العرض في الصفحة
-    if (typeof renderMyBookings === 'function') {
-        renderMyBookings();
-    }
-    if (typeof renderRooms === 'function') {
-        renderRooms();
-    }
+    renderMyBookings();
+    applyFilters();
+    updateBookingBadge();
 
-
-            const newBooking = {
-                id: 'b-' + Date.now(),
-                roomId,
-                roomName,
-                building,
-                date,
-                timeSlot,
-                studentName,
-                studentEmail,
-                purpose
-            };
-
-            bookings.push(newBooking);
-            localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
-
-            closeModal();
-            applyFilters();
-            updateBookingBadge();
-
-            // Reset form fields
-            document.getElementById('student-name').value = '';
-            document.getElementById('student-email').value = '';
-
-            // Notification message
-            const lang = translations[currentLang];lh²h h
-            showToast(lang.alertSuccess);
-        }
+    const lang = translations[currentLang];
+    showToast(lang.alertCancel);
+}
 
         // Render My Bookings List
         function renderMyBookings() {
@@ -840,3 +860,42 @@ async function handleBookingSubmit(event) {
             }, 3000);
         }
     </script>
+   <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://yzoikihiqwbfwnzxhtr.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabase;
+
+    async function syncBookingsFromSupabase() {
+        const { data, error } = await supabase.from('bookings').select('*');
+        if (!error && data) {
+            bookings = data.map(b => ({
+                id: b.id.toString(),
+                roomId: b.room_id,
+                roomName: b.room_name || 'Salle',
+                building: b.building || 'Bloc A',
+                date: b.date || getTodayDateString(),
+                timeSlot: b.time_slot || '08:00 - 09:30',
+                studentName: b.user_name,
+                studentEmail: b.student_email || '',
+                purpose: b.purpose || 'مراجعة'
+            }));
+            localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
+            applyFilters();
+            updateBookingBadge();
+            if (typeof renderMyBookings === 'function') renderMyBookings();
+        }
+    }
+
+    supabase
+        .channel('public:bookings')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+            syncBookingsFromSupabase();
+        })
+        .subscribe();
+
+    syncBookingsFromSupabase();
+</script>
