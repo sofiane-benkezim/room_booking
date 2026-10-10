@@ -668,25 +668,57 @@
             document.getElementById('booking-modal').classList.add('hidden');
         }
 
-        // Handle Booking Form Submit
-        function handleBookingSubmit(event) {
-            event.preventDefault();
+async function handleBookingSubmit(event) {
+    event.preventDefault();
 
-            const roomId = document.getElementById('modal-room-id').value;
-            const roomName = document.getElementById('modal-room-name').innerText;
-            const building = document.getElementById('modal-room-building').innerText;
-            const date = document.getElementById('modal-room-date').innerText;
-            const timeSlot = document.getElementById('modal-room-time').innerText;
-            
-            const studentName = document.getElementById('student-name').value;
-            const studentEmail = document.getElementById('student-email').value;
-            const purpose = document.getElementById('booking-purpose').value;
+    const roomId = document.getElementById('modal-room-id').value;
+    const roomName = document.getElementById('modal-room-name').innerText;
+    const building = document.getElementById('modal-room-building').innerText;
+    const date = document.getElementById('modal-room-date').innerText;
+    const timeslot = document.getElementById('modal-room-time').innerText;
 
-            // Double check availability
-            if (isRoomBooked(roomId, date, timeSlot)) {
-                alert('عذراً، تم حجز القاعة في هذه الفترة مسبقاً!');
-                return;
-            }
+    const studentName = document.getElementById('student-name').value;
+    const studentEmail = document.getElementById('student-email').value;
+    const purpose = document.getElementById('booking-purpose').value;
+
+    // 1. التحقق والحفظ في قاعدة بيانات Supabase أولاً
+    const isSuccess = await window.bookRoomToSupabase(roomId, studentName, date, timeslot);
+
+    if (!isSuccess) {
+        return; // توقف العملية إذا كانت القاعة محجوزة أو حدث خطأ
+    }
+
+    // 2. إذا نجح الحجز سحابياً، أكمل العمليات المحلية للموقع
+    const newBooking = {
+        id: 'b-' + Date.now(),
+        roomId,
+        roomName,
+        building,
+        date,
+        timeslot,
+        studentName,
+        studentEmail,
+        purpose,
+        createdAt: new Date().toISOString()
+    };
+
+    // حفظ الحجز في الذاكرة المحلية لعرضه في صفحة "حجوزاتي"
+    let bookings = JSON.parse(localStorage.getItem('user_bookings') || '[]');
+    bookings.push(newBooking);
+    localStorage.setItem('user_bookings', JSON.stringify(bookings));
+
+    // إغلاق نافذة الحجز وإظهار رسالة النجاح
+    closeModal();
+    showToast('تم حجز القاعة بنجاح وتأكيدها في النظام!');
+    
+    // تحديث العرض في الصفحة
+    if (typeof renderMyBookings === 'function') {
+        renderMyBookings();
+    }
+    if (typeof renderRooms === 'function') {
+        renderRooms();
+    }
+}
 
             const newBooking = {
                 id: 'b-' + Date.now(),
