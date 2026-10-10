@@ -97,6 +97,11 @@
                         </button>
                     </nav>
 
+                    <!-- Supabase Authentication -->
+                    <button id="auth-btn" onclick="handleAuthClick()" class="flex items-center bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded-lg text-sm font-bold transition">
+                        <i class="fa-solid fa-right-to-bracket ml-2"></i><span id="auth-btn-text">تسجيل الدخول</span>
+                    </button>
+
                     <!-- Language Switcher -->
                     <button onclick="toggleLanguage()" class="flex items-center bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-sm font-medium transition border border-white/20">
                         <i class="fa-solid fa-globe ml-2"></i>
@@ -315,11 +320,17 @@
             <p class="text-slate-500">École Nationale Supérieure des Travaux Publics - Kouba, Alger</p>
         </div>
     </footer>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Global State & Sample Data
         let currentLang = 'ar';
-        
+        const SUPABASE_URL = 'https://yzoikiihiqwbfwnzxhtr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
         // Sample ENSTP Rooms Data
         const defaultRooms = [
             { id: '1', name: 'Salle 01', building: 'Bloc A', capacity: 40, type: 'Classroom', equipment: ['Projector', 'Whiteboard'] },
@@ -427,20 +438,11 @@
             }
         };
 
-        // Initialize App State from LocalStorage
-        let bookings = JSON.parse(localStorage.getItem('enstp_bookings')) || [
-            {
-                id: 'b-sample1',
-                roomId: '6',
-                roomName: 'Amphi Francis (A1)',
-                building: 'Amphis',
-                date: getTodayDateString(),
-                timeSlot: '11:00 - 12:30',
-                studentName: 'أمين بلحاج',
-                studentEmail: 'a.belhadj@enstp.edu.dz',
-                purpose: 'تحضير مشروع PFE / Préparation PFE'
-            }
-        ];
+        // Application state. Bookings are stored in Supabase, not localStorage.
+        let bookings = [];
+        let roomBookings = [];
+        let currentUser = null;
+        let realtimeChannel = null;
 
         // Helper: Get Today's Date String YYYY-MM-DD
         function getTodayDateString() {
@@ -452,14 +454,11 @@
         }
 
         // On Page Load Initialization
-        window.onload = function() {
-            // Set Default Date Input to Today
+        window.addEventListener('load', async function() {
             document.getElementById('filter-date').value = getTodayDateString();
-            
-            // Render Initial Data
             applyFilters();
-            updateBookingBadge();
-        };
+            await initializeBookingSystem();
+        });
 
         // Switch Language Dynamic Handler
         function toggleLanguage() {
@@ -506,6 +505,7 @@
             document.getElementById('btn-confirm-booking').innerText = lang.btnConfirm;
             document.getElementById('footer-text').innerText = lang.footerText;
             document.getElementById('lang-btn-text').innerText = currentLang === 'ar' ? 'Français' : 'العربية';
+            updateAuthButton();
 
             // Re-render UI
             applyFilters();
@@ -565,13 +565,29 @@
         }
 
         // Check if room is booked for date & time
-        function isRoomBooked(roomId, date, timeSlot) {
-            if (timeSlot === 'all') {
-                // If checking 'all', check if booked at any time slot for that date
-                return bookings.some(b => b.roomId === roomId && b.date === date);
-            }
-            return bookings.some(b => b.roomId === roomId && b.date === date && b.timeSlot === timeSlot);
-        }
+       function isRoomBooked(roomId, date, timeSlot) {
+    const relevantBookings = roomBookings.filter(b =>
+        b.room_id === roomId &&
+        bookingIsActive(b) &&
+        formatLocalDateTime(b.starts_at).date === date
+    );
+
+    if (timeSlot === 'all') {
+        return relevantBookings.length > 0;
+    }
+
+    const [start, end] = timeSlot.split(' - ');
+    const requestedStart = new Date(`${date}T${start}:00`);
+    const requestedEnd = new Date(`${date}T${end}:00`);
+
+    return relevantBookings.some(b => {
+        const bookedStart = new Date(b.starts_at);
+        const bookedEnd = new Date(b.ends_at);
+
+        return requestedStart < bookedEnd &&
+               requestedEnd > bookedStart;
+    });
+}
 
         // Render Rooms Grid
         function renderRoomsGrid(rooms, selectedDate, selectedTime) {
@@ -668,114 +684,66 @@
             document.getElementById('booking-modal').classList.add('hidden');
         }
 
-   // Handle Booking Form Submit (Modified for Supabase)
-async function handleBookingSubmit(event) {
-    event.preventDefault();
+        // Submit the booking form
+        async function handleBookingSubmit(event) {
+            event.preventDefault();
+            const roomId = document.getElementById('modal-room-id').value;
+            const room = defaultRooms.find(r => r.id === roomId);
+            if (!room) { alert('تعذر تحديد القاعة. أعد فتح نافذة الحجز.'); return; }
 
-    const roomId = document.getElementById('modal-room-id').value;
-    const roomName = document.getElementById('modal-room-name').innerText;
-    const building = document.getElementById('modal-room-building').innerText;
-    const date = document.getElementById('modal-room-date').innerText;
-    const timeSlot = document.getElementById('modal-room-time').innerText;
-    
-    const studentName = document.getElementById('student-name').value;
-    const studentEmail = document.getElementById('student-email').value;
-    const purpose = document.getElementById('booking-purpose').value;
+            const date = document.getElementById('modal-room-date').innerText;
+            const timeSlot = document.getElementById('modal-room-time').innerText;
+            const studentName = document.getElementById('student-name').value.trim();
+            const studentEmail = document.getElementById('student-email').value.trim().toLowerCase();
+            const purpose = document.getElementById('booking-purpose').value;
 
-    if (isRoomBooked(roomId, date, timeSlot)) {
-        alert('عذراً، تم حجز القاعة في هذه الفترة مسبقاً!');
-        return;
-    }
+            if (!studentEmail.endsWith('@enstp.edu.dz')) {
+                alert('يرجى استعمال البريد الجامعي الذي ينتهي بـ @enstp.edu.dz');
+                return;
+            }
 
-    if (window.supabaseClient) {
-        const { error } = await window.supabaseClient.from('bookings').insert([{
-            room_id: roomId,
-            room_name: roomName,
-            building: building,
-            date: date,
-            time_slot: timeSlot,
-            user_name: studentName,
-            student_email: studentEmail,
-            purpose: purpose
-        }]);
-
-        if (error) {
-            console.error('Supabase Error:', error);
-            alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
-            return;
+            const ok = await saveBooking({ roomId, roomName: room.name, building: room.building, date, timeSlot, studentName, studentEmail, purpose });
+            if (ok) {
+                document.getElementById('booking-form').reset();
+                closeModal();
+                showToast(translations[currentLang].alertSuccess);
+            }
         }
-    }
 
-    const newBooking = {
-        id: 'b-' + Date.now(),
-        roomId,
-        roomName,
-        building,
-        date,
-        timeSlot,
-        studentName,
-        studentEmail,
-        purpose
-    };
+        async function saveBooking({ roomId, roomName, building, date, timeSlot, studentName, studentEmail, purpose }) {
+            if (!currentUser) {
+                alert('يرجى تسجيل الدخول أولاً من زر تسجيل الدخول.');
+                return false;
+            }
+            const [start, end] = timeSlot.split(' - ');
+            const startsAt = toLocalDateTime(date, start);
+            const endsAt = toLocalDateTime(date, end);
+            if (new Date(endsAt).getTime() <= Date.now()) {
+                alert('لا يمكن حجز فترة انتهت بالفعل.');
+                return false;
+            }
 
-    bookings.push(newBooking);
-    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
+            const { error } = await supabaseClient.from('bookings').insert({
+                room_id: roomId, room_name: roomName, building,
+                starts_at: startsAt, ends_at: endsAt,
+                student_name: studentName, student_email: studentEmail,
+                purpose, user_id: currentUser.id
+            });
+            if (error) {
+                console.error('Booking insert failed:', error);
+                if (error.code === '23P01') alert('عذرًا، القاعة محجوزة في هذه الفترة. حدّث الصفحة واختر فترة أخرى.');
+                else alert('تعذر تأكيد الحجز. تحقق من إعداد Supabase وتسجيل الدخول.');
+                return false;
+            }
+            await Promise.all([loadRoomBookings(), loadMyBookings()]);
+            return true;
+        }
 
-    closeModal();
-    applyFilters();
-    updateBookingBadge();
-
-    document.getElementById('student-name').value = '';
-    document.getElementById('student-email').value = '';
-
-    const lang = translations[currentLang];
-    showToast(lang.alertSuccess);
-}
-
-    const newBooking = {
-        id: bookingId,
-        roomId,
-        roomName,
-        building,
-        date,
-        timeSlot,
-        studentName,
-        studentEmail,
-        purpose
-    };
-
-    bookings.push(newBooking);
-    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
-
-    closeModal();
-    applyFilters();
-    updateBookingBadge();
-
-    // Reset form fields
-    document.getElementById('student-name').value = '';
-    document.getElementById('student-email').value = '';
-
-    // Notification message
-    const lang = translations[currentLang];
-    showToast(lang.alertSuccess);
-
-
-// Cancel Booking Action (Modified for Supabase)
-async function cancelBooking(bookingId) {
-    if (window.supabaseClient) {
-        await window.supabaseClient.from('enstp_bookings').delete().eq('id', bookingId);
-    }
-
-    bookings = bookings.filter(b => b.id !== bookingId);
-    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
-    
-    renderMyBookings();
-    applyFilters();
-    updateBookingBadge();
-
-    const lang = translations[currentLang];
-    showToast(lang.alertCancel);
-}
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[ch]);
+        }
 
         // Render My Bookings List
         function renderMyBookings() {
@@ -805,7 +773,7 @@ async function cancelBooking(bookingId) {
                         <div class="text-xs text-slate-600 flex flex-wrap gap-x-4 gap-y-1 pt-1">
                             <span><i class="fa-solid fa-calendar text-amber-500 ml-1"></i> ${b.date}</span>
                             <span><i class="fa-solid fa-clock text-amber-500 ml-1"></i> ${b.timeSlot}</span>
-                            <span><i class="fa-solid fa-user text-slate-400 ml-1"></i> ${b.studentName}</span>
+                            <span><i class="fa-solid fa-user text-slate-400 ml-1"></i> ${escapeHTML(b.studentName || "")}</span>
                         </div>
                         <div class="text-xs text-slate-500 pt-0.5">
                             <i class="fa-solid fa-bullseye ml-1"></i> ${b.purpose}
@@ -823,17 +791,18 @@ async function cancelBooking(bookingId) {
             });
         }
 
-        // Cancel Booking Action
-        function cancelBooking(bookingId) {
-            bookings = bookings.filter(b => b.id !== bookingId);
-            localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
-            
-            renderMyBookings();
-            applyFilters();
-            updateBookingBadge();
-
-            const lang = translations[currentLang];
-            showToast(lang.alertCancel);
+        // Cancel a booking in Supabase (RLS only permits deleting your own rows)
+        async function cancelBooking(bookingId) {
+            if (!currentUser) { alert('يرجى تسجيل الدخول أولاً.'); return; }
+            if (!confirm(currentLang === 'ar' ? 'هل تريد إلغاء هذا الحجز؟' : 'Annuler cette réservation ?')) return;
+            const { error } = await supabaseClient.from('bookings').delete().eq('id', bookingId).eq('user_id', currentUser.id);
+            if (error) {
+                console.error('Booking cancellation failed:', error);
+                alert('تعذر إلغاء الحجز.');
+                return;
+            }
+            await Promise.all([loadRoomBookings(), loadMyBookings()]);
+            showToast(translations[currentLang].alertCancel);
         }
 
         // Update Counter Badge
@@ -859,43 +828,127 @@ async function cancelBooking(bookingId) {
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-    </script>
-   <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    const SUPABASE_URL = 'https://yzoikiihiqwbfwnzxhtr.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabase;
-
-    async function syncBookingsFromSupabase() {
-        const { data, error } = await supabase.from('bookings').select('*');
-        if (!error && data) {
-            bookings = data.map(b => ({
-                id: b.id.toString(),
-                roomId: b.room_id,
-                roomName: b.room_name || 'Salle',
-                building: b.building || 'Bloc A',
-                date: b.date || getTodayDateString(),
-                timeSlot: b.time_slot || '08:00 - 09:30',
-                studentName: b.user_name,
-                studentEmail: b.student_email || '',
-                purpose: b.purpose || 'مراجعة'
-            }));
-            localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
-            applyFilters();
-            updateBookingBadge();
-            if (typeof renderMyBookings === 'function') renderMyBookings();
+        function toLocalDateTime(date, time) {
+            return new Date(`${date}T${time}:00`).toISOString();
         }
-    }
 
-    supabase
-        .channel('public:bookings')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
-            syncBookingsFromSupabase();
-        })
-        .subscribe();
+        function formatLocalDateTime(value) {
+            const d = new Date(value);
+            const pad = n => String(n).padStart(2, '0');
+            return {
+                date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+                time: `${pad(d.getHours())}:${pad(d.getMinutes())}`
+            };
+        }
 
-    syncBookingsFromSupabase();
-</script>
+        function bookingIsActive(booking) {
+            return new Date(booking.ends_at).getTime() > Date.now();
+        }
+
+        async function loadRoomBookings() {
+            const { data, error } = await supabaseClient
+                .from('booking_status')
+                .select('id, room_id, room_name, building, starts_at, ends_at');
+            if (error) {
+                console.error('تعذر تحميل حالة القاعات:', error);
+                return;
+            }
+            roomBookings = (data || []).filter(bookingIsActive);
+            applyFilters();
+        }
+
+        async function loadMyBookings() {
+            if (!currentUser) {
+                bookings = [];
+                renderMyBookings();
+                updateBookingBadge();
+                return;
+            }
+            const { data, error } = await supabaseClient
+                .from('bookings').select('*').eq('user_id', currentUser.id)
+                .order('starts_at', { ascending: true });
+            if (error) {
+                console.error('تعذر تحميل حجوزاتي:', error);
+                return;
+            }
+            bookings = (data || []).map(b => {
+                const start = formatLocalDateTime(b.starts_at);
+                const end = formatLocalDateTime(b.ends_at);
+                return { ...b, roomId: b.room_id, roomName: b.room_name, date: start.date,
+                    timeSlot: `${start.time} - ${end.time}`, studentName: b.student_name,
+                    studentEmail: b.student_email };
+            });
+            renderMyBookings();
+            updateBookingBadge();
+        }
+
+        function updateAuthButton() {
+            const text = document.getElementById('auth-btn-text');
+            const button = document.getElementById('auth-btn');
+            if (!text || !button) return;
+            text.textContent = currentUser ? (currentLang === 'ar' ? 'تسجيل الخروج' : 'Déconnexion') : (currentLang === 'ar' ? 'تسجيل الدخول' : 'Connexion');
+        }
+
+        async function handleAuthClick() {
+            if (currentUser) {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) { console.error(error); alert('تعذر تسجيل الخروج.'); }
+                return;
+            }
+            const email = prompt(currentLang === 'ar' ? 'أدخل بريدك الإلكتروني الجامعي:' : 'Saisissez votre email universitaire :');
+            if (!email) return;
+            if (!email.trim().toLowerCase().endsWith('@enstp.edu.dz')) {
+                alert('يرجى استعمال بريد ينتهي بـ @enstp.edu.dz');
+                return;
+            }
+            const { error } = await supabaseClient.auth.signInWithOtp({
+                email: email.trim().toLowerCase(),
+                options: { emailRedirectTo: window.location.href }
+            });
+            if (error) {
+                console.error(error);
+                alert('تعذر إرسال رابط الدخول. تحقق من إعداد البريد وعنوان إعادة التوجيه في Supabase.');
+            } else {
+                alert('تم إرسال رابط تسجيل الدخول إلى بريدك. افتح الرسالة ثم ارجع إلى الموقع.');
+            }
+        }
+
+        function subscribeToBookingChanges() {
+            if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+            realtimeChannel = supabaseClient.channel('enstp-booking-updates')
+                .on('broadcast', { event: 'booking_changed' }, async () => {
+                    await loadRoomBookings();
+                    await loadMyBookings();
+                })
+                .subscribe(status => {
+                    if (status === 'CHANNEL_ERROR') console.error('Supabase Realtime channel error');
+                });
+            return realtimeChannel;
+        }
+
+        async function initializeBookingSystem() {
+            if (SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
+                console.error('ضع رابط مشروع Supabase الصحيح في SUPABASE_URL.');
+                alert('الموقع يحتاج إلى إعداد رابط مشروع Supabase أولاً.');
+                applyFilters();
+                updateAuthButton();
+                return;
+            }
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (error) console.error('تعذر قراءة جلسة المستخدم:', error);
+            currentUser = data?.session?.user ?? null;
+            updateAuthButton();
+            await Promise.all([loadRoomBookings(), loadMyBookings()]);
+            subscribeToBookingChanges();
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user ?? null;
+                updateAuthButton();
+                setTimeout(async () => {
+                    await Promise.all([loadRoomBookings(), loadMyBookings()]);
+                }, 0);
+            });
+            // Refresh periodically so expired bookings become available without a reload.
+            setInterval(loadRoomBookings, 30000);
+        }
+    </script>
