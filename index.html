@@ -685,7 +685,7 @@ async function handleBookingSubmit(event) {
     const isSuccess = await window.bookRoomToSupabase(roomId, studentName, date, timeslot);
 
     if (!isSuccess) {
-        return; // توقف العملية إذا كانت القاعة محجوزة أو حدث خطأ
+        return; // توقف العملية إذا كانت القاعة محجوزة مسبقاً أو حدث خطأ
     }
 
     // 2. إذا نجح الحجز سحابياً، أكمل العمليات المحلية للموقع
@@ -695,21 +695,30 @@ async function handleBookingSubmit(event) {
         roomName,
         building,
         date,
-        timeslot,
+        timeSlot: timeslot,
         studentName,
         studentEmail,
-        purpose,
-        createdAt: new Date().toISOString()
+        purpose
     };
 
-    // حفظ الحجز في الذاكرة المحلية لعرضه في صفحة "حجوزاتي"
-    let bookings = JSON.parse(localStorage.getItem('user_bookings') || '[]');
+    let bookings = JSON.parse(localStorage.getItem('enstp_bookings') || '[]');
     bookings.push(newBooking);
-    localStorage.setItem('user_bookings', JSON.stringify(bookings));
+    localStorage.setItem('enstp_bookings', JSON.stringify(bookings));
 
-    // إغلاق نافذة الحجز وإظهار رسالة النجاح
     closeModal();
-    showToast('تم حجز القاعة بنجاح وتأكيدها في النظام!');
+    applyFilters();
+    updateBookingBadge();
+
+    // Reset form fields
+    document.getElementById('student-name').value = '';
+    document.getElementById('student-email').value = '';
+
+    // Notification message
+    const lang = translations[currentLang];
+    showToast(lang.alertSuccess);
+}
+
+  
     
     // تحديث العرض في الصفحة
     if (typeof renderMyBookings === 'function') {
@@ -744,7 +753,7 @@ async function handleBookingSubmit(event) {
             document.getElementById('student-email').value = '';
 
             // Notification message
-            const lang = translations[currentLang];
+            const lang = translations[currentLang];lh²h h
             showToast(lang.alertSuccess);
         }
 
