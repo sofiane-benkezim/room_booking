@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ENSTP - نظام حجز القاعات والمدرجات</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo for Arabic, Inter for French -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -32,34 +29,40 @@
             }
         }
     </script>
-    
+
     <style>
         body {
             font-family: 'Cairo', 'Inter', sans-serif;
             background-color: #f8fafc;
         }
+
         .room-card {
             transition: all 0.3s ease;
         }
+
         .room-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 20px -5px rgba(15, 43, 72, 0.15);
         }
-        /* Custom scrollbar */
+
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
         .bg-pattern {
             background-color: #0f2b48;
             background-image: radial-gradient(#1d5288 1px, transparent 1px);
@@ -67,43 +70,47 @@
         }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
     <!-- Header / Navbar -->
     <header class="bg-enstp-navy text-white shadow-lg sticky top-0 z-40 border-b border-enstp-blue/30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <!-- Logo & Title -->
+
                 <div class="flex items-center space-x-3 space-x-reverse">
                     <div class="bg-white p-2 rounded-lg shadow-md flex items-center justify-center w-12 h-12">
                         <i class="fa-solid font-bold text-2xl text-enstp-navy fa-building-columns"></i>
                     </div>
+
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-bold tracking-wide" id="app-title">المدرسة العليا للأشغال العمومية</h1>
-                        <p class="text-xs text-amber-400 font-semibold tracking-wider" id="app-subtitle">نظام حجز القاعات والمدرجات - ENSTP</p>
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-wide" id="app-title">
+                            المدرسة العليا للأشغال العمومية
+                        </h1>
+                        <p class="text-xs text-amber-400 font-semibold tracking-wider" id="app-subtitle">
+                            نظام حجز القاعات والمدرجات - ENSTP
+                        </p>
                     </div>
                 </div>
 
-                <!-- Right Actions: Language Switcher & Navigation Tabs -->
                 <div class="flex items-center space-x-3 sm:space-x-4 space-x-reverse">
-                    <!-- Navigation Tabs -->
                     <nav class="flex bg-enstp-blue/40 p-1 rounded-xl">
-                        <button id="tab-rooms-btn" onclick="switchTab('rooms')" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow">
-                            <i class="fa-solid fa-door-open ml-1 sm:ml-2"></i><span id="txt-tab-rooms">القاعات المتاحة</span>
+                        <button id="tab-rooms-btn" onclick="switchTab('rooms')"
+                            class="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow">
+                            <i class="fa-solid fa-door-open ml-1 sm:ml-2"></i>
+                            <span id="txt-tab-rooms">القاعات المتاحة</span>
                         </button>
-                        <button id="tab-bookings-btn" onclick="switchTab('bookings')" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white">
-                            <i class="fa-solid fa-calendar-check ml-1 sm:ml-2"></i><span id="txt-tab-bookings">حجوزاتي</span>
+
+                        <button id="tab-bookings-btn" onclick="switchTab('bookings')"
+                            class="px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white">
+                            <i class="fa-solid fa-calendar-check ml-1 sm:ml-2"></i>
+                            <span id="txt-tab-bookings">الحجوزات</span>
                             <span id="booking-badge" class="hidden bg-amber-500 text-enstp-navy font-bold text-xs px-2 py-0.5 rounded-full mr-1">0</span>
                         </button>
                     </nav>
 
-                    <!-- Supabase Authentication -->
-                    <button id="auth-btn" onclick="handleAuthClick()" class="flex items-center bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded-lg text-sm font-bold transition">
-                        <i class="fa-solid fa-right-to-bracket ml-2"></i><span id="auth-btn-text">تسجيل الدخول</span>
-                    </button>
-
-                    <!-- Language Switcher -->
-                    <button onclick="toggleLanguage()" class="flex items-center bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-sm font-medium transition border border-white/20">
+                    <button onclick="toggleLanguage()"
+                        class="flex items-center bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-sm font-medium transition border border-white/20">
                         <i class="fa-solid fa-globe ml-2"></i>
                         <span id="lang-btn-text">Français</span>
                     </button>
@@ -112,47 +119,56 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
-        <!-- TAB 1: ROOMS EXPLORER & SEARCH -->
+        <!-- TAB 1: ROOMS -->
         <div id="tab-rooms" class="space-y-6">
-            
+
             <!-- Hero Banner -->
             <div class="bg-pattern rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
                 <div class="relative z-10 max-w-2xl">
-                    <h2 class="text-2xl sm:text-3xl font-extrabold mb-2" id="hero-title">احجز قاعتك للمراجعة أو مشاريع PFE بسهولة</h2>
-                    <p class="text-slate-300 text-sm sm:text-base mb-4" id="hero-desc">استكشف القاعات والمدرجات الشاغرة في الوقت الفعلي وضمن بيئة مريحة للدراسة والعمل الجماعي.</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold mb-2" id="hero-title">
+                        احجز قاعتك للمراجعة أو مشاريع PFE بسهولة
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base mb-4" id="hero-desc">
+                        استكشف القاعات والمدرجات الشاغرة في الوقت الفعلي وضمن بيئة مريحة للدراسة والعمل الجماعي.
+                    </p>
                 </div>
                 <i class="fa-solid fa-compass-drafting absolute left-6 bottom-[-20px] text-white/10 text-9xl pointer-events-none"></i>
             </div>
 
-            <!-- Filters Bar -->
+            <!-- Filters -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-bold text-slate-700 flex items-center text-lg">
                         <i class="fa-solid fa-sliders text-enstp-blue ml-2"></i>
                         <span id="txt-filter-title">تصفية وتحديد القاعات</span>
                     </h3>
-                    <button onclick="resetFilters()" class="text-xs font-semibold text-slate-500 hover:text-amber-600 transition flex items-center">
+
+                    <button onclick="resetFilters()"
+                        class="text-xs font-semibold text-slate-500 hover:text-amber-600 transition flex items-center">
                         <i class="fa-solid fa-rotate-right ml-1"></i>
                         <span id="txt-reset-filters">إعادة ضبط</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Date Picker -->
+
+                    <!-- Date -->
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1" id="lbl-date">التاريخ</label>
                         <div class="relative">
-                            <input type="date" id="filter-date" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none font-sans">
+                            <input type="date" id="filter-date" onchange="applyFilters()"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none font-sans">
                         </div>
                     </div>
 
-                    <!-- Time Slot Filter -->
+                    <!-- Time -->
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1" id="lbl-time">التوقيت الزمني</label>
-                        <select id="filter-time" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                        <select id="filter-time" onchange="applyFilters()"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
                             <option value="all" id="opt-all-times">جميع الفترات (08:00 - 17:00)</option>
                             <option value="08:00 - 09:30">08:00 - 09:30</option>
                             <option value="09:30 - 11:00">09:30 - 11:00</option>
@@ -163,10 +179,11 @@
                         </select>
                     </div>
 
-                    <!-- Building Filter -->
+                    <!-- Building -->
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1" id="lbl-building">المبنى / الجناح</label>
-                        <select id="filter-building" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                        <select id="filter-building" onchange="applyFilters()"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
                             <option value="all" id="opt-all-buildings">جميع الأجنحة</option>
                             <option value="Bloc A">الجناح أ (Bloc A)</option>
                             <option value="Bloc B">الجناح ب (Bloc B)</option>
@@ -175,32 +192,41 @@
                         </select>
                     </div>
 
-                    <!-- Search Input -->
+                    <!-- Search -->
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1" id="lbl-search">البحث بالاسم أو السعة</label>
                         <div class="relative">
-                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="مثال: Amphi 1 أو Salle 10..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pl-8 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                            <input type="text" id="filter-search" oninput="applyFilters()"
+                                placeholder="مثال: Amphi 1 أو Salle 10..."
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pl-8 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Stats Bar -->
+            <!-- Stats -->
             <div class="flex items-center justify-between px-2 text-sm text-slate-600">
                 <div>
                     <span id="txt-results-count">القاعات المتاحة:</span>
                     <strong id="rooms-count" class="text-enstp-navy font-bold text-base mr-1">0</strong>
                 </div>
+
                 <div class="flex items-center space-x-4 space-x-reverse text-xs">
-                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 ml-1"></span> <span id="lbl-status-free">شاغرة</span></span>
-                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-rose-500 ml-1"></span> <span id="lbl-status-booked">محجوزة</span></span>
+                    <span class="flex items-center">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 ml-1"></span>
+                        <span id="lbl-status-free">شاغرة</span>
+                    </span>
+                    <span class="flex items-center">
+                        <span class="w-3 h-3 rounded-full bg-rose-500 ml-1"></span>
+                        <span id="lbl-status-booked">محجوزة</span>
+                    </span>
                 </div>
             </div>
 
             <!-- Rooms Grid -->
             <div id="rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamically Populated -->
+                <!-- Dynamically populated -->
             </div>
 
             <!-- Empty Search State -->
@@ -211,23 +237,23 @@
             </div>
         </div>
 
-        <!-- TAB 2: MY BOOKINGS -->
+        <!-- TAB 2: BOOKINGS -->
         <div id="tab-bookings" class="hidden space-y-6">
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                     <div>
-                        <h2 class="text-xl font-bold text-enstp-navy" id="txt-my-bookings-title">قائمة حجوزاتي الحالية</h2>
-                        <p class="text-xs text-slate-500 mt-0.5" id="txt-my-bookings-desc">إدارة وتتبع القاعات التي قمت بحجزها مسبقاً</p>
+                        <h2 class="text-xl font-bold text-enstp-navy" id="txt-my-bookings-title">قائمة الحجوزات الحالية</h2>
+                        <p class="text-xs text-slate-500 mt-0.5" id="txt-my-bookings-desc">عرض الحجوزات المشتركة للقاعات ومواعيدها</p>
                     </div>
+
                     <div class="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold border border-amber-200">
                         <i class="fa-solid fa-circle-info ml-1"></i>
-                        <span id="txt-cancel-info">يمكنك إلغاء الحجز لإعادة إتاحة القاعة لزملائك</span>
+                        <span id="txt-cancel-info">يمكن إلغاء حجوزاتك من الجهاز الذي أُنشئت منه فقط</span>
                     </div>
                 </div>
 
-                <!-- Bookings List Table/Cards -->
                 <div id="bookings-list" class="space-y-4">
-                    <!-- Dynamically Populated -->
+                    <!-- Dynamically populated -->
                 </div>
 
                 <!-- Empty Bookings State -->
@@ -235,22 +261,26 @@
                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fa-solid fa-calendar-xmark text-2xl text-slate-400"></i>
                     </div>
-                    <h3 class="font-bold text-slate-700 text-lg" id="txt-no-bookings">لا توجد لديك حجوزات سابقة</h3>
-                    <p class="text-sm text-slate-500 mt-1 mb-6" id="txt-no-bookings-sub">قم باختيار قاعة من القوائم المتاحة ثم تأكيد الحجز.</p>
-                    <button onclick="switchTab('rooms')" class="bg-enstp-navy hover:bg-enstp-blue text-white px-6 py-2.5 rounded-xl font-bold text-sm transition shadow-md">
+
+                    <h3 class="font-bold text-slate-700 text-lg" id="txt-no-bookings">لا توجد حجوزات حالية</h3>
+                    <p class="text-sm text-slate-500 mt-1 mb-6" id="txt-no-bookings-sub">
+                        قم باختيار قاعة من القوائم المتاحة ثم تأكيد الحجز.
+                    </p>
+
+                    <button onclick="switchTab('rooms')"
+                        class="bg-enstp-navy hover:bg-enstp-blue text-white px-6 py-2.5 rounded-xl font-bold text-sm transition shadow-md">
                         <i class="fa-solid fa-magnifying-glass ml-2"></i>
                         <span id="btn-browse-rooms">تصفح القاعات الآن</span>
                     </button>
                 </div>
             </div>
         </div>
-
     </main>
 
     <!-- Booking Modal -->
     <div id="booking-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all duration-300">
-            <!-- Modal Header -->
+
             <div class="bg-enstp-navy text-white p-5 flex items-center justify-between">
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <i class="fa-solid fa-file-pen text-amber-400 text-xl"></i>
@@ -261,39 +291,54 @@
                 </button>
             </div>
 
-            <!-- Modal Form -->
             <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="p-6 space-y-4">
-                <!-- Room Details Summary Box -->
+
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-1">
                     <div class="flex justify-between text-slate-700 font-bold text-sm">
                         <span id="modal-room-name">Salle 01</span>
                         <span id="modal-room-building" class="text-enstp-blue">Bloc A</span>
                     </div>
                     <div class="flex justify-between text-slate-500 pt-1">
-                        <span><i class="fa-solid fa-calendar ml-1"></i><span id="modal-room-date">2026-10-10</span></span>
-                        <span><i class="fa-solid fa-clock ml-1"></i><span id="modal-room-time">08:00 - 09:30</span></span>
+                        <span>
+                            <i class="fa-solid fa-calendar ml-1"></i>
+                            <span id="modal-room-date">2026-10-10</span>
+                        </span>
+                        <span>
+                            <i class="fa-solid fa-clock ml-1"></i>
+                            <span id="modal-room-time">08:00 - 09:30</span>
+                        </span>
                     </div>
                 </div>
 
-                <!-- Hidden Inputs -->
                 <input type="hidden" id="modal-room-id">
 
-                <!-- Student Name Input -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-student-name">اسم الطالب الكامل *</label>
-                    <input type="text" id="student-name" required placeholder="مثال: أسامة بن محمد" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-student-name">
+                        اسم الطالب الكامل *
+                    </label>
+                    <input type="text" id="student-name" required maxlength="100"
+                        placeholder="مثال: أسامة بن محمد"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
                 </div>
 
-                <!-- Email Input (Academic ENSTP Email) -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-student-email">البريد الإلكتروني الجامعي (@enstp.edu.dz) *</label>
-                    <input type="email" id="student-email" required placeholder="example@enstp.edu.dz" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-student-email">
+                        البريد الإلكتروني للتواصل *
+                    </label>
+                    <input type="email" id="student-email" required maxlength="254"
+                        placeholder="example@email.com"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                    <p class="text-xs text-slate-500 mt-1">
+                        لن يتم إرسال رابط تحقق؛ أدخل بريدًا صحيحًا للتواصل فقط.
+                    </p>
                 </div>
 
-                <!-- Purpose Input -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-purpose">الغرض من الحجز *</label>
-                    <select id="booking-purpose" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-purpose">
+                        الغرض من الحجز *
+                    </label>
+                    <select id="booking-purpose" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-enstp-blue focus:outline-none">
                         <option value="مراجعة جماعية / Révision de groupe" id="opt-p1">مراجعة جماعية (Révision de groupe)</option>
                         <option value="تحضير مشروع PFE / Préparation PFE" id="opt-p2">تحضير مشروع التخرج (PFE)</option>
                         <option value="ورشة تطبيقية / Atelier pratique" id="opt-p3">ورشة تطبيقية (Atelier)</option>
@@ -301,10 +346,13 @@
                     </select>
                 </div>
 
-                <!-- Actions -->
                 <div class="pt-4 flex items-center justify-end space-x-3 space-x-reverse">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-sm transition" id="btn-cancel">إلغاء</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-enstp-navy font-bold rounded-xl text-sm transition shadow-md flex items-center">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-sm transition"
+                        id="btn-cancel">إلغاء</button>
+
+                    <button type="submit"
+                        class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-enstp-navy font-bold rounded-xl text-sm transition shadow-md flex items-center">
                         <i class="fa-solid fa-check ml-2"></i>
                         <span id="btn-confirm-booking">تأكيد الحجز</span>
                     </button>
@@ -320,18 +368,25 @@
             <p class="text-slate-500">École Nationale Supérieure des Travaux Publics - Kouba, Alger</p>
         </div>
     </footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Global State & Sample Data
-        let currentLang = 'ar';
-        const SUPABASE_URL = 'https://yzoikiihiqwbfwnzxhtr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';
 
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
-        // Sample ENSTP Rooms Data
+    <!-- Supabase library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        let currentLang = 'ar';
+
+        // ضع عنوان مشروع Supabase الحقيقي هنا.
+        const SUPABASE_URL = 'https://yzoikiihiqwbfwnzxhtr.supabase.co';
+
+        // استخدم مفتاح النشر العام (Publishable/anon)، وليس service_role.
+        const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';
+
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+        // بيانات القاعات
         const defaultRooms = [
             { id: '1', name: 'Salle 01', building: 'Bloc A', capacity: 40, type: 'Classroom', equipment: ['Projector', 'Whiteboard'] },
             { id: '2', name: 'Salle 02', building: 'Bloc A', capacity: 40, type: 'Classroom', equipment: ['Whiteboard'] },
@@ -344,13 +399,13 @@ const supabaseClient = window.supabase.createClient(
             { id: '9', name: 'Labo Informatique 1', building: 'Laboratoires', capacity: 30, type: 'Lab', equipment: ['25 PCs', 'Projector', 'AC'] }
         ];
 
-        // Dictionaries for Multi-language Support
+        // ترجمات الواجهة
         const translations = {
             ar: {
                 appTitle: 'المدرسة العليا للأشغال العمومية',
                 appSubtitle: 'نظام حجز القاعات والمدرجات - ENSTP',
                 tabRooms: 'القاعات المتاحة',
-                tabBookings: 'حجوزاتي',
+                tabBookings: 'الحجوزات',
                 heroTitle: 'احجز قاعتك للمراجعة أو مشاريع PFE بسهولة',
                 heroDesc: 'استكشف القاعات والمدرجات الشاغرة في الوقت الفعلي وضمن بيئة مريحة للدراسة والعمل الجماعي.',
                 filterTitle: 'تصفية وتحديد القاعات',
@@ -366,15 +421,15 @@ const supabaseClient = window.supabase.createClient(
                 statusBooked: 'محجوزة',
                 noRooms: 'لا توجد قاعات تطابق خيارات البحث',
                 tryReset: 'جرب تغيير شروط التصفية أو الوقت المختارات.',
-                myBookingsTitle: 'قائمة حجوزاتي الحالية',
-                myBookingsDesc: 'إدارة وتتبع القاعات التي قمت بحجزها مسبقاً',
-                cancelInfo: 'يمكنك إلغاء الحجز لإعادة إتاحة القاعة لزملائك',
-                noBookings: 'لا توجد لديك حجوزات سابقة',
+                myBookingsTitle: 'قائمة الحجوزات الحالية',
+                myBookingsDesc: 'عرض الحجوزات المشتركة للقاعات ومواعيدها',
+                cancelInfo: 'يمكن إلغاء حجوزاتك من الجهاز الذي أُنشئت منه فقط',
+                noBookings: 'لا توجد حجوزات حالية',
                 noBookingsSub: 'قم باختيار قاعة من القوائم المتاحة ثم تأكيد الحجز.',
                 browseRooms: 'تصفح القاعات الآن',
                 modalTitle: 'تأكيد حجز القاعة',
                 lblStudentName: 'اسم الطالب الكامل *',
-                lblStudentEmail: 'البريد الإلكتروني الجامعي (@enstp.edu.dz) *',
+                lblStudentEmail: 'البريد الإلكتروني للتواصل *',
                 lblPurpose: 'الغرض من الحجز *',
                 optP1: 'مراجعة جماعية (Révision de groupe)',
                 optP2: 'تحضير مشروع التخرج (PFE)',
@@ -395,9 +450,9 @@ const supabaseClient = window.supabase.createClient(
                 appTitle: 'École Nationale Supérieure des Travaux Publics',
                 appSubtitle: 'Système de Réservation des Salles - ENSTP',
                 tabRooms: 'Salles Disponibles',
-                tabBookings: 'Mes Réservations',
+                tabBookings: 'Réservations',
                 heroTitle: 'Réservez votre salle pour révision ou projets PFE',
-                heroDesc: 'Explorez les salles et amphithéâtres libres en temps réel dans un environnement idéal d\'étude.',
+                heroDesc: 'Explorez les salles et amphithéâtres libres en temps réel dans un environnement idéal d’étude.',
                 filterTitle: 'Filtrer les salles',
                 resetFilters: 'Réinitialiser',
                 lblDate: 'Date',
@@ -410,16 +465,16 @@ const supabaseClient = window.supabase.createClient(
                 statusFree: 'Libre',
                 statusBooked: 'Occupée',
                 noRooms: 'Aucune salle ne correspond à votre recherche',
-                tryReset: 'Essayez de modifier les filtres ou l\'horaire choisi.',
-                myBookingsTitle: 'Mes Réservations Actuelles',
-                myBookingsDesc: 'Gérez et suivez vos réservations de salles',
-                cancelInfo: 'Vous pouvez annuler pour libérer la salle aux camarades',
-                noBookings: 'Vous n\'avez aucune réservation',
+                tryReset: 'Essayez de modifier les filtres ou l’horaire choisi.',
+                myBookingsTitle: 'Réservations actuelles',
+                myBookingsDesc: 'Consultez les réservations partagées et leurs horaires',
+                cancelInfo: 'Une réservation ne peut être annulée que depuis l’appareil qui l’a créée',
+                noBookings: 'Aucune réservation en cours',
                 noBookingsSub: 'Sélectionnez une salle disponible puis confirmez la réservation.',
                 browseRooms: 'Parcourir les salles',
                 modalTitle: 'Confirmer la réservation',
-                lblStudentName: 'Nom complet de l\'étudiant *',
-                lblStudentEmail: 'Email universitaire (@enstp.edu.dz) *',
+                lblStudentName: 'Nom complet de l’étudiant *',
+                lblStudentEmail: 'Adresse e-mail de contact *',
                 lblPurpose: 'Motif de la réservation *',
                 optP1: 'Révision de groupe',
                 optP2: 'Préparation PFE',
@@ -438,222 +493,313 @@ const supabaseClient = window.supabase.createClient(
             }
         };
 
-        // Application state. Bookings are stored in Supabase, not localStorage.
+        // حالة التطبيق والحجوزات
         let bookings = [];
         let roomBookings = [];
-        let currentUser = null;
         let realtimeChannel = null;
 
-        // Helper: Get Today's Date String YYYY-MM-DD
-        function getTodayDateString() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        const CANCEL_TOKEN_STORAGE_KEY = 'enstp_booking_cancel_tokens_v1';
+
+        function getCancelTokens() {
+            try {
+                return JSON.parse(
+                    localStorage.getItem(CANCEL_TOKEN_STORAGE_KEY) || '{}'
+                );
+            } catch (_) {
+                return {};
+            }
         }
 
-        // On Page Load Initialization
-        window.addEventListener('load', async function() {
-            document.getElementById('filter-date').value = getTodayDateString();
-            applyFilters();
-            await initializeBookingSystem();
-        });
+        function rememberCancelToken(id, token) {
+            const tokens = getCancelTokens();
+            tokens[id] = token;
+            localStorage.setItem(
+                CANCEL_TOKEN_STORAGE_KEY,
+                JSON.stringify(tokens)
+            );
+        }
 
-        // Switch Language Dynamic Handler
+        function forgetCancelToken(id) {
+            const tokens = getCancelTokens();
+            delete tokens[id];
+            localStorage.setItem(
+                CANCEL_TOKEN_STORAGE_KEY,
+                JSON.stringify(tokens)
+            );
+        }
+
+        // تبديل اللغة العربية والفرنسية
         function toggleLanguage() {
             currentLang = currentLang === 'ar' ? 'fr' : 'ar';
+
             document.documentElement.lang = currentLang;
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-            
-            // Update Text Elements
-            const lang = translations[currentLang];
-            document.getElementById('app-title').innerText = lang.appTitle;
-            document.getElementById('app-subtitle').innerText = lang.appSubtitle;
-            document.getElementById('txt-tab-rooms').innerText = lang.tabRooms;
-            document.getElementById('txt-tab-bookings').innerText = lang.tabBookings;
-            document.getElementById('hero-title').innerText = lang.heroTitle;
-            document.getElementById('hero-desc').innerText = lang.heroDesc;
-            document.getElementById('txt-filter-title').innerText = lang.filterTitle;
-            document.getElementById('txt-reset-filters').innerText = lang.resetFilters;
-            document.getElementById('lbl-date').innerText = lang.lblDate;
-            document.getElementById('lbl-time').innerText = lang.lblTime;
-            document.getElementById('lbl-building').innerText = lang.lblBuilding;
-            document.getElementById('lbl-search').innerText = lang.lblSearch;
-            document.getElementById('opt-all-times').innerText = lang.optAllTimes;
-            document.getElementById('opt-all-buildings').innerText = lang.optAllBuildings;
-            document.getElementById('txt-results-count').innerText = lang.resultsCount;
-            document.getElementById('lbl-status-free').innerText = lang.statusFree;
-            document.getElementById('lbl-status-booked').innerText = lang.statusBooked;
-            document.getElementById('txt-no-rooms').innerText = lang.noRooms;
-            document.getElementById('txt-try-reset').innerText = lang.tryReset;
-            document.getElementById('txt-my-bookings-title').innerText = lang.myBookingsTitle;
-            document.getElementById('txt-my-bookings-desc').innerText = lang.myBookingsDesc;
-            document.getElementById('txt-cancel-info').innerText = lang.cancelInfo;
-            document.getElementById('txt-no-bookings').innerText = lang.noBookings;
-            document.getElementById('txt-no-bookings-sub').innerText = lang.noBookingsSub;
-            document.getElementById('btn-browse-rooms').innerText = lang.browseRooms;
-            document.getElementById('modal-title').innerText = lang.modalTitle;
-            document.getElementById('lbl-student-name').innerText = lang.lblStudentName;
-            document.getElementById('lbl-student-email').innerText = lang.lblStudentEmail;
-            document.getElementById('lbl-purpose').innerText = lang.lblPurpose;
-            document.getElementById('opt-p1').innerText = lang.optP1;
-            document.getElementById('opt-p2').innerText = lang.optP2;
-            document.getElementById('opt-p3').innerText = lang.optP3;
-            document.getElementById('opt-p4').innerText = lang.optP4;
-            document.getElementById('btn-cancel').innerText = lang.btnCancel;
-            document.getElementById('btn-confirm-booking').innerText = lang.btnConfirm;
-            document.getElementById('footer-text').innerText = lang.footerText;
-            document.getElementById('lang-btn-text').innerText = currentLang === 'ar' ? 'Français' : 'العربية';
-            updateAuthButton();
 
-            // Re-render UI
+            document.getElementById('lang-btn-text').innerText =
+                currentLang === 'ar' ? 'Français' : 'العربية';
+
+            const t = translations[currentLang];
+
+            const textMap = {
+                'app-title': t.appTitle,
+                'app-subtitle': t.appSubtitle,
+                'txt-tab-rooms': t.tabRooms,
+                'txt-tab-bookings': t.tabBookings,
+                'hero-title': t.heroTitle,
+                'hero-desc': t.heroDesc,
+                'txt-filter-title': t.filterTitle,
+                'txt-reset-filters': t.resetFilters,
+                'lbl-date': t.lblDate,
+                'lbl-time': t.lblTime,
+                'lbl-building': t.lblBuilding,
+                'lbl-search': t.lblSearch,
+                'txt-results-count': t.resultsCount,
+                'lbl-status-free': t.statusFree,
+                'lbl-status-booked': t.statusBooked,
+                'txt-no-rooms': t.noRooms,
+                'txt-try-reset': t.tryReset,
+                'txt-my-bookings-title': t.myBookingsTitle,
+                'txt-my-bookings-desc': t.myBookingsDesc,
+                'txt-cancel-info': t.cancelInfo,
+                'txt-no-bookings': t.noBookings,
+                'txt-no-bookings-sub': t.noBookingsSub,
+                'btn-browse-rooms': t.browseRooms,
+                'modal-title': t.modalTitle,
+                'lbl-student-name': t.lblStudentName,
+                'lbl-student-email': t.lblStudentEmail,
+                'lbl-purpose': t.lblPurpose,
+                'btn-cancel': t.btnCancel,
+                'btn-confirm-booking': t.btnConfirm,
+                'footer-text': t.footerText
+            };
+
+            Object.entries(textMap).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.innerText = value;
+            });
+
+            const purposeSelect = document.getElementById('booking-purpose');
+            if (purposeSelect) {
+                [...purposeSelect.options].forEach((option, index) => {
+                    const purposeLabels = [
+                        t.optP1, t.optP2, t.optP3, t.optP4
+                    ];
+                    if (purposeLabels[index]) {
+                        option.textContent = purposeLabels[index];
+                    }
+                });
+            }
+
             applyFilters();
             renderMyBookings();
         }
 
-        // Switch Navigation Tabs
+        // التنقل بين القاعات والحجوزات
         function switchTab(tab) {
-            const roomsTab = document.getElementById('tab-rooms');
-            const bookingsTab = document.getElementById('tab-bookings');
-            const roomsBtn = document.getElementById('tab-rooms-btn');
-            const bookingsBtn = document.getElementById('tab-bookings-btn');
+            document.getElementById('tab-rooms').classList.toggle(
+                'hidden', tab !== 'rooms'
+            );
+            document.getElementById('tab-bookings').classList.toggle(
+                'hidden', tab !== 'bookings'
+            );
 
-            if (tab === 'rooms') {
-                roomsTab.classList.remove('hidden');
-                bookingsTab.classList.add('hidden');
-                roomsBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow";
-                bookingsBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white";
-            } else {
-                roomsTab.classList.add('hidden');
-                bookingsTab.classList.remove('hidden');
-                bookingsBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow";
-                roomsBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white";
-                renderMyBookings();
+            document.getElementById('tab-rooms-btn').className =
+                tab === 'rooms'
+                    ? 'px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow'
+                    : 'px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white';
+
+            document.getElementById('tab-bookings-btn').className =
+                tab === 'bookings'
+                    ? 'px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-white shadow'
+                    : 'px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-200 hover:text-white';
+
+            if (tab === 'bookings') {
+                loadMyBookings();
             }
         }
 
-        // Filter Function
-        function applyFilters() {
-            const selectedDate = document.getElementById('filter-date').value;
-            const selectedTime = document.getElementById('filter-time').value;
-            const selectedBuilding = document.getElementById('filter-building').value;
-            const searchText = document.getElementById('filter-search').value.toLowerCase().trim();
-
-            const filteredRooms = defaultRooms.filter(room => {
-                // Building match
-                if (selectedBuilding !== 'all' && room.building !== selectedBuilding) {
-                    return false;
-                }
-                // Search match (name or capacity)
-                if (searchText !== '' && !room.name.toLowerCase().includes(searchText) && !room.capacity.toString().includes(searchText)) {
-                    return false;
-                }
-                return true;
-            });
-
-            renderRoomsGrid(filteredRooms, selectedDate, selectedTime);
-        }
-
-        // Reset All Filters
+        // إعادة ضبط خيارات البحث
         function resetFilters() {
-            document.getElementById('filter-date').value = getTodayDateString();
+            document.getElementById('filter-date').value =
+                getLocalDateString(new Date());
+
             document.getElementById('filter-time').value = 'all';
             document.getElementById('filter-building').value = 'all';
             document.getElementById('filter-search').value = '';
+
             applyFilters();
         }
 
-        // Check if room is booked for date & time
-       function isRoomBooked(roomId, date, timeSlot) {
-    const relevantBookings = roomBookings.filter(b =>
-        b.room_id === roomId &&
-        bookingIsActive(b) &&
-        formatLocalDateTime(b.starts_at).date === date
-    );
+        // تاريخ اليوم حسب التوقيت المحلي
+        function getLocalDateString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
 
-    if (timeSlot === 'all') {
-        return relevantBookings.length > 0;
-    }
+            return `${year}-${month}-${day}`;
+        }
 
-    const [start, end] = timeSlot.split(' - ');
-    const requestedStart = new Date(`${date}T${start}:00`);
-    const requestedEnd = new Date(`${date}T${end}:00`);
+        // تحويل التاريخ والوقت إلى صيغة ISO مع مراعاة توقيت الجزائر
+        function toLocalDateTime(dateString, timeString) {
+            return `${dateString}T${timeString}:00+01:00`;
+        }
 
-    return relevantBookings.some(b => {
-        const bookedStart = new Date(b.starts_at);
-        const bookedEnd = new Date(b.ends_at);
+        function formatLocalDateTime(value) {
+            const d = new Date(value);
 
-        return requestedStart < bookedEnd &&
-               requestedEnd > bookedStart;
-    });
-}
+            return {
+                date: getLocalDateString(d),
+                time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+            };
+        }
 
-        // Render Rooms Grid
-        function renderRoomsGrid(rooms, selectedDate, selectedTime) {
-            const grid = document.getElementById('rooms-grid');
-            const noRoomsMsg = document.getElementById('no-rooms-msg');
-            const countEl = document.getElementById('rooms-count');
-            const lang = translations[currentLang];
+        // تحديد ما إذا كان الحجز ما زال فعالًا
+        function bookingIsActive(booking) {
+            return new Date(booking.ends_at).getTime() > Date.now();
+        }
 
-            grid.innerHTML = '';
-            countEl.innerText = rooms.length;
-
-            if (rooms.length === 0) {
-                noRoomsMsg.classList.remove('hidden');
-                return;
-            } else {
-                noRoomsMsg.classList.add('hidden');
+        // معرفة هل القاعة محجوزة في الفترة المحددة
+        function isRoomBooked(roomId, date, timeSlot) {
+            if (!date || !timeSlot || timeSlot === 'all') {
+                return false;
             }
 
+            const [start, end] = timeSlot.split(' - ');
+            const requestedStart = new Date(
+                toLocalDateTime(date, start)
+            ).getTime();
+
+            const requestedEnd = new Date(
+                toLocalDateTime(date, end)
+            ).getTime();
+
+            return roomBookings.some(booking => {
+                if (String(booking.room_id) !== String(roomId)) {
+                    return false;
+                }
+
+                const bookingStart = new Date(booking.starts_at).getTime();
+                const bookingEnd = new Date(booking.ends_at).getTime();
+
+                return requestedStart < bookingEnd &&
+                       requestedEnd > bookingStart;
+            });
+        }
+
+        // عرض القاعات المتاحة حسب عوامل التصفية
+        function applyFilters() {
+            const dateInput = document.getElementById('filter-date');
+            const timeInput = document.getElementById('filter-time');
+            const buildingInput = document.getElementById('filter-building');
+            const searchInput = document.getElementById('filter-search');
+
+            const date = dateInput.value || getLocalDateString(new Date());
+            const timeSlot = timeInput.value;
+            const building = buildingInput.value;
+            const search = searchInput.value.trim().toLowerCase();
+
+            const filteredRooms = defaultRooms.filter(room => {
+                const matchesBuilding =
+                    building === 'all' || room.building === building;
+
+                const matchesSearch =
+                    room.name.toLowerCase().includes(search) ||
+                    room.building.toLowerCase().includes(search) ||
+                    String(room.capacity).includes(search);
+
+                const matchesTime =
+                    timeSlot === 'all' ||
+                    !isRoomBooked(room.id, date, timeSlot);
+
+                return matchesBuilding && matchesSearch && matchesTime;
+            });
+
+            renderRoomsGrid(filteredRooms, date, timeSlot);
+
+            document.getElementById('rooms-count').innerText =
+                filteredRooms.length;
+
+            document.getElementById('no-rooms-msg').classList.toggle(
+                'hidden', filteredRooms.length > 0
+            );
+        }
+
+        // رسم بطاقات القاعات
+        function renderRoomsGrid(rooms, date, timeSlot) {
+            const grid = document.getElementById('rooms-grid');
+            grid.innerHTML = '';
+
             rooms.forEach(room => {
-                const booked = isRoomBooked(room.id, selectedDate, selectedTime);
-                
+                const selectedTime =
+                    timeSlot === 'all' ? '08:00 - 09:30' : timeSlot;
+
+                const booked = isRoomBooked(
+                    room.id, date, selectedTime
+                );
+
+                const t = translations[currentLang];
+
+                const equipmentHTML = room.equipment.map(item =>
+                    `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs">${escapeHTML(item)}</span>`
+                ).join('');
+
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl p-5 border room-card flex flex-col justify-between ${booked ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'}`;
+
+                card.className =
+                    'room-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden';
 
                 card.innerHTML = `
-                    <div>
-                        <!-- Header & Badge -->
-                        <div class="flex items-start justify-between mb-3">
+                    <div class="bg-enstp-navy text-white p-5">
+                        <div class="flex justify-between items-start gap-2">
                             <div>
-                                <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-enstp-blue bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 mb-1">
-                                    ${room.building}
-                                </span>
-                                <h3 class="text-lg font-extrabold text-slate-800">${room.name}</h3>
+                                <h3 class="font-extrabold text-lg">
+                                    ${escapeHTML(room.name)}
+                                </h3>
+                                <p class="text-xs text-slate-300 mt-1">
+                                    ${escapeHTML(room.building)}
+                                </p>
                             </div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${booked ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">
-                                <span class="w-2 h-2 rounded-full ${booked ? 'bg-rose-500' : 'bg-emerald-500'} ${currentLang === 'ar' ? 'ml-1.5' : 'mr-1.5'}"></span>
-                                ${booked ? lang.statusBooked : lang.statusFree}
+                            <span class="text-xs font-bold px-3 py-1 rounded-full
+                                ${booked
+                                    ? 'bg-rose-500/20 text-rose-300'
+                                    : 'bg-emerald-500/20 text-emerald-300'}">
+                                ${booked ? t.statusBooked : t.statusFree}
                             </span>
-                        </div>
-
-                        <!-- Capacity & Details -->
-                        <div class="space-y-2 text-xs text-slate-600 mb-4">
-                            <div class="flex items-center">
-                                <i class="fa-solid fa-users text-slate-400 w-5"></i>
-                                <span>${room.capacity} ${lang.capacity}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fa-solid fa-screwdriver-wrench text-slate-400 w-5"></i>
-                                <span>${lang.equipment} ${room.equipment.join(', ')}</span>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Action Button -->
-                    <div class="pt-3 border-t border-slate-100">
-                        ${booked ? `
-                            <button disabled class="w-full py-2.5 bg-slate-100 text-slate-400 font-bold text-xs rounded-xl cursor-not-allowed flex items-center justify-center">
-                                <i class="fa-solid fa-lock ${currentLang === 'ar' ? 'ml-2' : 'mr-2'}"></i>
-                                ${lang.btnBooked}
+                    <div class="p-5 space-y-4">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-500">
+                                <i class="fa-solid fa-users ml-2 text-enstp-blue"></i>
+                                ${t.capacity}
+                            </span>
+                            <strong class="text-slate-800">
+                                ${room.capacity}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-bold text-slate-500 mb-2">
+                                ${t.equipment}
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                ${equipmentHTML}
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-4">
+                            <button
+                                onclick="openBookingModal('${room.id}', '${date}', '${selectedTime}')"
+                                ${booked ? 'disabled' : ''}
+                                class="w-full py-2.5 rounded-xl font-bold text-sm transition
+                                ${booked
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-amber-500 hover:bg-amber-600 text-enstp-navy shadow-sm'}">
+                                <i class="fa-solid fa-calendar-plus ml-2"></i>
+                                ${booked ? t.btnBooked : t.btnBookNow}
                             </button>
-                        ` : `
-                            <button onclick="openBookingModal('${room.id}', '${room.name}', '${room.building}')" class="w-full py-2.5 bg-enstp-navy hover:bg-enstp-blue text-white font-bold text-xs rounded-xl transition shadow flex items-center justify-center">
-                                <i class="fa-solid fa-calendar-plus ${currentLang === 'ar' ? 'ml-2' : 'mr-2'}"></i>
-                                ${lang.btnBookNow}
-                            </button>
-                        `}
+                        </div>
                     </div>
                 `;
 
@@ -661,294 +807,317 @@ const supabaseClient = window.supabase.createClient(
             });
         }
 
-        // Open Booking Modal
-        function openBookingModal(roomId, roomName, building) {
-            const selectedDate = document.getElementById('filter-date').value || getTodayDateString();
-            let selectedTime = document.getElementById('filter-time').value;
-            
-            if (selectedTime === 'all') {
-                selectedTime = '08:00 - 09:30'; // default time slot selection
+        // فتح نافذة الحجز
+        function openBookingModal(roomId, date, timeSlot) {
+            const room = defaultRooms.find(
+                item => String(item.id) === String(roomId)
+            );
+
+            if (!room) {
+                alert('تعذر العثور على القاعة.');
+                return;
             }
 
-            document.getElementById('modal-room-id').value = roomId;
-            document.getElementById('modal-room-name').innerText = roomName;
-            document.getElementById('modal-room-building').innerText = building;
-            document.getElementById('modal-room-date').innerText = selectedDate;
-            document.getElementById('modal-room-time').innerText = selectedTime;
+            if (!date || !timeSlot || timeSlot === 'all') {
+                alert('يرجى اختيار التاريخ والفترة الزمنية أولًا.');
+                return;
+            }
+
+            if (isRoomBooked(roomId, date, timeSlot)) {
+                alert('هذه القاعة محجوزة بالفعل في هذا التوقيت.');
+                return;
+            }
+
+            document.getElementById('modal-room-id').value = room.id;
+            document.getElementById('modal-room-name').innerText = room.name;
+            document.getElementById('modal-room-building').innerText = room.building;
+            document.getElementById('modal-room-date').innerText = date;
+            document.getElementById('modal-room-time').innerText = timeSlot;
 
             document.getElementById('booking-modal').classList.remove('hidden');
         }
 
-        // Close Modal
+        // إغلاق نافذة الحجز
         function closeModal() {
             document.getElementById('booking-modal').classList.add('hidden');
         }
 
-        // Submit the booking form
+        // رسائل الحالة
+        function showToast(message) {
+            alert(message);
+        }
+
+        // حماية النصوص المعروضة من حقن HTML
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
+        }
+
+        // إرسال طلب الحجز إلى Supabase
         async function handleBookingSubmit(event) {
             event.preventDefault();
+
             const roomId = document.getElementById('modal-room-id').value;
-            const room = defaultRooms.find(r => r.id === roomId);
-            if (!room) { alert('تعذر تحديد القاعة. أعد فتح نافذة الحجز.'); return; }
+            const room = defaultRooms.find(
+                item => String(item.id) === String(roomId)
+            );
 
-            const date = document.getElementById('modal-room-date').innerText;
-            const timeSlot = document.getElementById('modal-room-time').innerText;
-            const studentName = document.getElementById('student-name').value.trim();
-            const studentEmail = document.getElementById('student-email').value.trim().toLowerCase();
-            const purpose = document.getElementById('booking-purpose').value;
-
-            if (!studentEmail.endsWith('@enstp.edu.dz')) {
-                alert('يرجى استعمال البريد الجامعي الذي ينتهي بـ @enstp.edu.dz');
+            if (!room) {
+                showToast('لم يتم العثور على القاعة.');
                 return;
             }
 
-            const ok = await saveBooking({ roomId, roomName: room.name, building: room.building, date, timeSlot, studentName, studentEmail, purpose });
-            if (ok) {
+            const date = document.getElementById('filter-date').value;
+            const timeSlot = document.getElementById('filter-time').value;
+
+            if (!date || !timeSlot || timeSlot === 'all') {
+                showToast('يرجى اختيار التاريخ والفترة الزمنية.');
+                return;
+            }
+
+            const [startTime, endTime] = timeSlot.split(' - ');
+
+            const studentName =
+                document.getElementById('student-name').value.trim();
+
+            const studentEmail =
+                document.getElementById('student-email').value.trim();
+
+            const purpose =
+                document.getElementById('booking-purpose').value;
+
+            if (!studentName || !studentEmail) {
+                showToast('يرجى إدخال الاسم والبريد الإلكتروني.');
+                return;
+            }
+
+            const submitButton =
+                document.getElementById('btn-confirm-booking');
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'جارٍ إرسال الحجز...';
+
+            try {
+                const { data, error } = await supabaseClient.rpc(
+                    'create_public_booking',
+                    {
+                        p_room_id: String(room.id),
+                        p_room_name: room.name,
+                        p_building: room.building,
+                        p_starts_at: toLocalDateTime(date, startTime),
+                        p_ends_at: toLocalDateTime(date, endTime),
+                        p_student_name: studentName,
+                        p_student_email: studentEmail,
+                        p_purpose: purpose
+                    }
+                );
+
+                if (error) throw error;
+
+                if (data && data.success === false) {
+                    throw new Error(data.message || 'تعذر تأكيد الحجز.');
+                }
+
                 document.getElementById('booking-form').reset();
                 closeModal();
-                showToast(translations[currentLang].alertSuccess);
+
+                showToast(
+                    currentLang === 'ar'
+                        ? 'تم إرسال طلب الحجز بنجاح.'
+                        : 'Réservation envoyée avec succès.'
+                );
+
+                await loadRoomBookings();
+                await loadMyBookings();
+
+            } catch (error) {
+                console.error('Booking error:', error);
+
+                showToast(
+                    currentLang === 'ar'
+                        ? 'تعذر الحجز. قد تكون القاعة محجوزة بالفعل. حدّث الصفحة وحاول مجددًا.'
+                        : 'Échec de la réservation. Actualisez la page et réessayez.'
+                );
+
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent =
+                    translations[currentLang].btnConfirm;
             }
         }
 
-        async function saveBooking({ roomId, roomName, building, date, timeSlot, studentName, studentEmail, purpose }) {
-            if (!currentUser) {
-                alert('يرجى تسجيل الدخول أولاً من زر تسجيل الدخول.');
-                return false;
-            }
-            const [start, end] = timeSlot.split(' - ');
-            const startsAt = toLocalDateTime(date, start);
-            const endsAt = toLocalDateTime(date, end);
-            if (new Date(endsAt).getTime() <= Date.now()) {
-                alert('لا يمكن حجز فترة انتهت بالفعل.');
-                return false;
-            }
-
-            const { error } = await supabaseClient.from('bookings').insert({
-                room_id: roomId, room_name: roomName, building,
-                starts_at: startsAt, ends_at: endsAt,
-                student_name: studentName, student_email: studentEmail,
-                purpose, user_id: currentUser.id
-            });
-            if (error) {
-                console.error('Booking insert failed:', error);
-                if (error.code === '23P01') alert('عذرًا، القاعة محجوزة في هذه الفترة. حدّث الصفحة واختر فترة أخرى.');
-                else alert('تعذر تأكيد الحجز. تحقق من إعداد Supabase وتسجيل الدخول.');
-                return false;
-            }
-            await Promise.all([loadRoomBookings(), loadMyBookings()]);
-            return true;
-        }
-
-        function escapeHTML(value) {
-            return String(value ?? '').replace(/[&<>"']/g, ch => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            })[ch]);
-        }
-
-        // Render My Bookings List
-        function renderMyBookings() {
-            const listEl = document.getElementById('bookings-list');
-            const noBookingsEl = document.getElementById('no-bookings-msg');
-            const lang = translations[currentLang];
-
-            listEl.innerHTML = '';
-
-            if (bookings.length === 0) {
-                noBookingsEl.classList.remove('hidden');
-                return;
-            } else {
-                noBookingsEl.classList.add('hidden');
-            }
-
-            bookings.forEach(b => {
-                const item = document.createElement('div');
-                item.className = "bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4";
-
-                item.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <span class="font-extrabold text-slate-800 text-base">${b.roomName}</span>
-                            <span class="text-xs bg-enstp-blue/10 text-enstp-blue px-2 py-0.5 rounded-md font-bold">${b.building}</span>
-                        </div>
-                        <div class="text-xs text-slate-600 flex flex-wrap gap-x-4 gap-y-1 pt-1">
-                            <span><i class="fa-solid fa-calendar text-amber-500 ml-1"></i> ${b.date}</span>
-                            <span><i class="fa-solid fa-clock text-amber-500 ml-1"></i> ${b.timeSlot}</span>
-                            <span><i class="fa-solid fa-user text-slate-400 ml-1"></i> ${escapeHTML(b.studentName || "")}</span>
-                        </div>
-                        <div class="text-xs text-slate-500 pt-0.5">
-                            <i class="fa-solid fa-bullseye ml-1"></i> ${b.purpose}
-                        </div>
-                    </div>
-                    <div>
-                        <button onclick="cancelBooking('${b.id}')" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl transition flex items-center">
-                            <i class="fa-solid fa-trash-can ${currentLang === 'ar' ? 'ml-1.5' : 'mr-1.5'}"></i>
-                            ${lang.cancelBooking}
-                        </button>
-                    </div>
-                `;
-
-                listEl.appendChild(item);
-            });
-        }
-
-        // Cancel a booking in Supabase (RLS only permits deleting your own rows)
-        async function cancelBooking(bookingId) {
-            if (!currentUser) { alert('يرجى تسجيل الدخول أولاً.'); return; }
-            if (!confirm(currentLang === 'ar' ? 'هل تريد إلغاء هذا الحجز؟' : 'Annuler cette réservation ?')) return;
-            const { error } = await supabaseClient.from('bookings').delete().eq('id', bookingId).eq('user_id', currentUser.id);
-            if (error) {
-                console.error('Booking cancellation failed:', error);
-                alert('تعذر إلغاء الحجز.');
-                return;
-            }
-            await Promise.all([loadRoomBookings(), loadMyBookings()]);
-            showToast(translations[currentLang].alertCancel);
-        }
-
-        // Update Counter Badge
-        function updateBookingBadge() {
-            const badge = document.getElementById('booking-badge');
-            badge.innerText = bookings.length;
-            if (bookings.length > 0) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // Simple Toast Notification
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-enstp-navy text-white px-6 py-3 rounded-xl shadow-2xl z-50 text-sm font-bold flex items-center space-x-2 space-x-reverse transition-all duration-300';
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i><span>${message}</span>`;
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function toLocalDateTime(date, time) {
-            return new Date(`${date}T${time}:00`).toISOString();
-        }
-
-        function formatLocalDateTime(value) {
-            const d = new Date(value);
-            const pad = n => String(n).padStart(2, '0');
-            return {
-                date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
-                time: `${pad(d.getHours())}:${pad(d.getMinutes())}`
-            };
-        }
-
-        function bookingIsActive(booking) {
-            return new Date(booking.ends_at).getTime() > Date.now();
-        }
-
+        // تحميل أوقات الحجوزات المشتركة
         async function loadRoomBookings() {
             const { data, error } = await supabaseClient
                 .from('booking_status')
                 .select('id, room_id, room_name, building, starts_at, ends_at');
+
             if (error) {
-                console.error('تعذر تحميل حالة القاعات:', error);
+                console.error('Loading room bookings failed:', error);
                 return;
             }
-            roomBookings = (data || []).filter(bookingIsActive);
+
+            roomBookings = (data || []).map(booking => ({
+                ...booking,
+                starts_at: booking.starts_at,
+                ends_at: booking.ends_at
+            }));
+
             applyFilters();
         }
 
+        // تحميل قائمة الحجوزات
         async function loadMyBookings() {
-            if (!currentUser) {
-                bookings = [];
-                renderMyBookings();
-                updateBookingBadge();
-                return;
-            }
+            const container = document.getElementById('my-bookings-list');
+
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="text-center py-8 text-slate-500">
+                    جارٍ تحميل الحجوزات...
+                </div>
+            `;
+
             const { data, error } = await supabaseClient
-                .from('bookings').select('*').eq('user_id', currentUser.id)
+                .from('booking_status')
+                .select('id, room_id, room_name, building, starts_at, ends_at')
                 .order('starts_at', { ascending: true });
+
             if (error) {
-                console.error('تعذر تحميل حجوزاتي:', error);
+                console.error('Loading bookings failed:', error);
+
+                container.innerHTML = `
+                    <div class="text-center py-8 text-rose-600">
+                        تعذر تحميل الحجوزات. تحقق من اتصال الإنترنت وإعدادات Supabase.
+                    </div>
+                `;
                 return;
             }
-            bookings = (data || []).map(b => {
-                const start = formatLocalDateTime(b.starts_at);
-                const end = formatLocalDateTime(b.ends_at);
-                return { ...b, roomId: b.room_id, roomName: b.room_name, date: start.date,
-                    timeSlot: `${start.time} - ${end.time}`, studentName: b.student_name,
-                    studentEmail: b.student_email };
-            });
+
+            bookings = data || [];
             renderMyBookings();
             updateBookingBadge();
         }
 
-        function updateAuthButton() {
-            const text = document.getElementById('auth-btn-text');
-            const button = document.getElementById('auth-btn');
-            if (!text || !button) return;
-            text.textContent = currentUser ? (currentLang === 'ar' ? 'تسجيل الخروج' : 'Déconnexion') : (currentLang === 'ar' ? 'تسجيل الدخول' : 'Connexion');
-        }
+        // عرض الحجوزات لجميع الزوار
+        function renderMyBookings() {
+            const container = document.getElementById('my-bookings-list');
 
-        async function handleAuthClick() {
-            if (currentUser) {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) { console.error(error); alert('تعذر تسجيل الخروج.'); }
+            if (!container) return;
+
+            if (!bookings.length) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        <i class="fa-regular fa-calendar-xmark text-3xl mb-3"></i>
+                        <p class="font-bold">لا توجد حجوزات مسجلة حاليًا.</p>
+                    </div>
+                `;
                 return;
             }
-            const email = prompt(currentLang === 'ar' ? 'أدخل بريدك الإلكتروني الجامعي:' : 'Saisissez votre email universitaire :');
-            if (!email) return;
-            if (!email.trim().toLowerCase().endsWith('@enstp.edu.dz')) {
-                alert('يرجى استعمال بريد ينتهي بـ @enstp.edu.dz');
-                return;
-            }
-            const { error } = await supabaseClient.auth.signInWithOtp({
-                email: email.trim().toLowerCase(),
-                options: { emailRedirectTo: window.location.href }
-            });
-            if (error) {
-                console.error(error);
-                alert('تعذر إرسال رابط الدخول. تحقق من إعداد البريد وعنوان إعادة التوجيه في Supabase.');
-            } else {
-                alert('تم إرسال رابط تسجيل الدخول إلى بريدك. افتح الرسالة ثم ارجع إلى الموقع.');
+
+            container.innerHTML = bookings.map(booking => {
+                const start = new Date(booking.starts_at);
+                const end = new Date(booking.ends_at);
+
+                const date = getLocalDateString(start);
+
+                const time =
+                    `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}` +
+                    ' - ' +
+                    `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
+
+                return `
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800">
+                                    ${escapeHTML(booking.room_name || 'قاعة')}
+                                </h3>
+                                <p class="text-sm text-slate-500 mt-1">
+                                    ${escapeHTML(booking.building || '')}
+                                </p>
+                                <p class="text-sm text-slate-600 mt-2">
+                                    <i class="fa-regular fa-calendar ml-1"></i>
+                                    ${escapeHTML(date)}
+                                    <span class="mx-2">|</span>
+                                    <i class="fa-regular fa-clock ml-1"></i>
+                                    ${escapeHTML(time)}
+                                </p>
+                            </div>
+                            <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-2 rounded-full">
+                                ${new Date(booking.ends_at) > new Date()
+                                    ? 'حجز قادم'
+                                    : 'انتهى الوقت'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // تحديث عدد الحجوزات
+        function updateBookingBadge() {
+            const badge = document.getElementById('bookings-count');
+
+            if (badge) {
+                badge.textContent = bookings.length;
             }
         }
 
+        // استقبال تحديثات Supabase في الوقت الفعلي
         function subscribeToBookingChanges() {
-            if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
-            realtimeChannel = supabaseClient.channel('enstp-booking-updates')
-                .on('broadcast', { event: 'booking_changed' }, async () => {
-                    await loadRoomBookings();
-                    await loadMyBookings();
-                })
+            if (realtimeChannel) {
+                supabaseClient.removeChannel(realtimeChannel);
+            }
+
+            realtimeChannel = supabaseClient
+                .channel('public-booking-updates')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'bookings'
+                    },
+                    async () => {
+                        await loadRoomBookings();
+                        await loadMyBookings();
+                    }
+                )
                 .subscribe(status => {
-                    if (status === 'CHANNEL_ERROR') console.error('Supabase Realtime channel error');
+                    console.log('Realtime status:', status);
                 });
-            return realtimeChannel;
         }
 
+        // بدء تشغيل الموقع
         async function initializeBookingSystem() {
-            if (SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-                console.error('ضع رابط مشروع Supabase الصحيح في SUPABASE_URL.');
-                alert('الموقع يحتاج إلى إعداد رابط مشروع Supabase أولاً.');
-                applyFilters();
-                updateAuthButton();
-                return;
+            const dateInput = document.getElementById('filter-date');
+
+            if (dateInput && !dateInput.value) {
+                dateInput.value = getLocalDateString(new Date());
             }
-            const { data, error } = await supabaseClient.auth.getSession();
-            if (error) console.error('تعذر قراءة جلسة المستخدم:', error);
-            currentUser = data?.session?.user ?? null;
-            updateAuthButton();
-            await Promise.all([loadRoomBookings(), loadMyBookings()]);
+
+            const form = document.getElementById('booking-form');
+
+            if (form) {
+                form.addEventListener('submit', handleBookingSubmit);
+            }
+
+            await loadRoomBookings();
+            await loadMyBookings();
+
             subscribeToBookingChanges();
-            supabaseClient.auth.onAuthStateChange((_event, session) => {
-                currentUser = session?.user ?? null;
-                updateAuthButton();
-                setTimeout(async () => {
-                    await Promise.all([loadRoomBookings(), loadMyBookings()]);
-                }, 0);
-            });
-            // Refresh periodically so expired bookings become available without a reload.
-            setInterval(loadRoomBookings, 30000);
         }
+
+        // تشغيل التطبيق بعد تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeBookingSystem();
+        });
     </script>
+</body>
+</html>
