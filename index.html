@@ -798,115 +798,89 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+    </script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-// إعدادات Supabase الخاصة بك
-const SUPABASE_URL = 'https://yzoikihiqwbfwnzxhtr.supabase.co';[cite: 1]
-const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';[cite: 2]
+  const SUPABASE_URL = 'https://yzoikihiqwbfwnzxhtr.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr'; // ضع مفتاحك هنا
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/**
- * دالة حجز قاعة مع التحقق من عدم تداخل الأوقات
- */
-async function bookRoom(roomId, userName, startTimeStr, endTimeStr) {
-  const newStart = new Date(startTimeStr).toISOString();
-  const newEnd = new Date(endTimeStr).toISOString();
-  const now = new Date().toISOString();
+  window.bookRoomToSupabase = async function(roomId, userName, startTimeStr, endTimeStr) {
+    const newStart = new Date(startTimeStr).toISOString();
+    const newEnd = new Date(endTimeStr).toISOString();
+    const now = new Date().toISOString();
 
-  if (newStart >= newEnd) {
-    alert("خطأ: وقت الانتهاء يجب أن يكون بعد وقت البدء.");
-    return;
-  }
-
-  if (newStart < now) {
-    alert("خطأ: لا يمكنك الحجز في وقت مضى.");
-    return;
-  }
-
-  try {
-    // جلب الحجوزات النشطة لنفس القاعة
-    const { data: existingBookings, error } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('room_id', roomId)
-      .gt('end_time', now);
-
-    if (error) throw error;
-
-    // التحقق من تقاطع الأوقات
-    const isConflict = existingBookings.some(booking => {
-      const bStart = new Date(booking.start_time).getTime();
-      const bEnd = new Date(booking.end_time).getTime();
-      const nStart = new Date(newStart).getTime();
-      const nEnd = new Date(newEnd).getTime();
-
-      return nStart < bEnd && nEnd > bStart;
-    });
-
-    if (isConflict) {
-      alert("عذراً، هذه القاعة محجوزة بالفعل في هذا الفاصل الزمني!");
-      return;
+    if (newStart >= newEnd) {
+      alert("خطأ: وقت الانتهاء يجب أن يكون بعد وقت البدء.");
+      return false;
     }
 
-    // إدخال الحجز الجديد في قاعدة البيانات
-    const { error: insertError } = await supabase
-      .from('bookings')
-      .insert([{ room_id: roomId, user_name: userName, start_time: newStart, end_time: newEnd }]);
+    if (newStart < now) {
+      alert("خطأ: لا يمكنك الحجز في وقت مضى.");
+      return false;
+    }
 
-    if (insertError) throw insertError;
+    try {
+      const { data: existingBookings, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('room_id', roomId)
+        .gt('end_time', now);
 
-    alert("تم حجز القاعة بنجاح!");
-    location.reload(); // تحديث الصفحة لتحديث العرض
+      if (error) throw error;
 
-  } catch (err) {
-    console.error("خطأ في الحجز:", err);
-    alert("فشل إجراء الحجز، حاول مرة أخرى.");
-  }
-}
+      const isConflict = existingBookings.some(booking => {
+        const bStart = new Date(booking.start_time).getTime();
+        const bEnd = new Date(booking.end_time).getTime();
+        const nStart = new Date(newStart).getTime();
+        const nEnd = new Date(newEnd).getTime();
 
-/**
- * تحديث واجهة المستخدم بشكل فوري (Real-time)
- */
-function listenToBookings() {
-  const fetchAndRefresh = async () => {
+        return nStart < bEnd && nEnd > bStart;
+      });
+
+      if (isConflict) {
+        alert("عذراً، هذه القاعة محجوزة بالفعل في هذا الفاصل الزمني!");
+        return false;
+      }
+
+      const { error: insertError } = await supabase
+        .from('bookings')
+        .insert([{ room_id: roomId, user_name: userName, start_time: newStart, end_time: newEnd }]);
+
+      if (insertError) throw insertError;
+
+      alert("تم حجز القاعة بنجاح!");
+      return true;
+
+    } catch (err) {
+      console.error("خطأ في الحجز:", err);
+      alert("فشل إجراء الحجز، حاول مرة أخرى.");
+      return false;
+    }
+  };
+
+  window.getActiveBookingsFromSupabase = async function() {
     const now = new Date().toISOString();
     const { data: activeBookings } = await supabase
       .from('bookings')
       .select('*')
       .gt('end_time', now);
-
-    // 1. إعادة جميع القاعات لوضع "متاح"
-    document.querySelectorAll('.room-card, [data-room-id]').forEach(card => {
-      card.classList.remove('booked');
-      // يمكنك تعديل الألوان أو الـ classes هنا بما يتوافق مع تصميمك
-    });
-
-    // 2. تحديث القاعات المحجوزة حالياً وإظهارها للمستخدمين الآخرين
-    if (activeBookings) {
-      activeBookings.forEach(booking => {
-        const roomElement = document.querySelector(`[data-room-id="${booking.room_id}"]`);
-        if (roomElement) {
-          roomElement.classList.add('booked');
-          // تغيير شكل القاعة أو نص الحالة لتظهر أنها محجوزة
-          const statusSpan = roomElement.querySelector('.status-text');
-          if (statusSpan) statusSpan.innerText = `محجوزة بواسطة ${booking.user_name}`;
-        }
-      });
-    }
+    
+    return activeBookings || [];
   };
 
-  fetchAndRefresh();
-
-  // الاستماع للتغييرات اللحظية عبر Supabase Realtime
   supabase
     .channel('public:bookings')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, fetchAndRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+      if (typeof renderRooms === 'function') {
+        renderRooms();
+      }
+    })
     .subscribe();
-}
+</script>
 
-// تشغيل الاستماع المباشر فور تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-  listenToBookings();
-});
-    </script>
+</body>
+</html>
+    
