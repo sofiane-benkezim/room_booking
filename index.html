@@ -803,84 +803,83 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
   const SUPABASE_URL = 'https://yzoikihiqwbfwnzxhtr.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr'; // ضع مفتاحك هنا
+  const SUPABASE_ANON_KEY = 'ضع_هنا_المفتاح_الخاص_بك_من_Publishable_key'; // ضع مفتاحك الصحيح هنا
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  window.bookRoomToSupabase = async function(roomId, userName, startTimeStr, endTimeStr) {
-    const newStart = new Date(startTimeStr).toISOString();
-    const newEnd = new Date(endTimeStr).toISOString();
-    const now = new Date().toISOString();
+  // دالة تحويل التاريخ والوقت إلى صيغة ISO مقبولة
+  function parseBookingDateTime(dateStr, timeRangeStr) {
+    // timeRangeStr يكون مثلاً "08:00 - 09:30"
+    const parts = timeRangeStr.split('-').map(s => s.trim());
+    if (parts.length < 2) return null;
 
-    if (newStart >= newEnd) {
+    const startTimeStr = `${dateStr}T${parts[0]}:00`;
+    const endTimeStr = `${dateStr}T${parts[1]}:00`;
+
+    return {
+      startISO: new Date(startTimeStr).toISOString(),
+      endISO: new Date(endTimeStr).toISOString(),
+      startTimestamp: new Date(startTimeStr).getTime(),
+      endTimestamp: new Date(endTimeStr).getTime()
+    };
+  }
+
+  // ربط الدالة بفرز الحجز وإلغاء الاعتماد على الحفظ المحلي فقط
+  window.bookRoomToSupabase = async function(roomId, userName, dateStr, timeSlotStr) {
+    const times = parseBookingDateTime(dateStr, timeSlotStr);
+
+    if (!times || isNaN(times.startTimestamp) || isNaN(times.endTimestamp)) {
+      alert("خطأ في تحديد صيغة الوقت!");
+      return false;
+    }
+
+    if (times.startTimestamp >= times.endTimestamp) {
       alert("خطأ: وقت الانتهاء يجب أن يكون بعد وقت البدء.");
       return false;
     }
 
-    if (newStart < now) {
-      alert("خطأ: لا يمكنك الحجز في وقت مضى.");
-      return false;
-    }
-
     try {
+      // 1. جلب كافة الحجوزات لنفس القاعة
       const { data: existingBookings, error } = await supabase
         .from('bookings')
         .select('*')
-        .eq('room_id', roomId)
-        .gt('end_time', now);
+        .eq('room_id', roomId);
 
       if (error) throw error;
 
+      // 2. التحقق من التداخل الزمني بطلب دقيق
       const isConflict = existingBookings.some(booking => {
         const bStart = new Date(booking.start_time).getTime();
         const bEnd = new Date(booking.end_time).getTime();
-        const nStart = new Date(newStart).getTime();
-        const nEnd = new Date(newEnd).getTime();
 
-        return nStart < bEnd && nEnd > bStart;
+        // شرط التقاطع بين الفترتين
+        return times.startTimestamp < bEnd && times.endTimestamp > bStart;
       });
 
       if (isConflict) {
-        alert("عذراً، هذه القاعة محجوزة بالفعل في هذا الفاصل الزمني!");
+        alert("⚠️ عذراً! هذه القاعة محجوزة بالفعل في هذا الوقت من طرف مستخدم آخر.");
         return false;
       }
 
+      // 3. إضافة الحجز لقاعدة البيانات
       const { error: insertError } = await supabase
         .from('bookings')
-        .insert([{ room_id: roomId, user_name: userName, start_time: newStart, end_time: newEnd }]);
+        .insert([{
+          room_id: roomId,
+          user_name: userName,
+          start_time: times.startISO,
+          end_time: times.endISO
+        }]);
 
       if (insertError) throw insertError;
 
-      alert("تم حجز القاعة بنجاح!");
+      alert("✅ تم الحجز بنجاح وتأكيده في قاعدة البيانات!");
       return true;
 
     } catch (err) {
-      console.error("خطأ في الحجز:", err);
-      alert("فشل إجراء الحجز، حاول مرة أخرى.");
+      console.error("خطأ أثناء الاتصال بقاعدة البيانات:", err);
+      alert("حدث خطأ أثناء إجراء الحجز، يرجى المحاولة مرة أخرى.");
       return false;
     }
   };
-
-  window.getActiveBookingsFromSupabase = async function() {
-    const now = new Date().toISOString();
-    const { data: activeBookings } = await supabase
-      .from('bookings')
-      .select('*')
-      .gt('end_time', now);
-    
-    return activeBookings || [];
-  };
-
-  supabase
-    .channel('public:bookings')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
-      if (typeof renderRooms === 'function') {
-        renderRooms();
-      }
-    })
-    .subscribe();
 </script>
-
-</body>
-</html>
-    
