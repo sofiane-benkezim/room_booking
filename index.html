@@ -798,4 +798,148 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+        // 1. استيراد مكتبة Supabase عبر الـ CDN______________________________________________________________________________________________________________________________
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// 2. إعداد الاتصال بـ Supabase
+const SUPABASE_URL = 'https://yzoikiihiqwbfwnzxhtr.supabase.co'; // ضع رابط مشروعك هنا
+const SUPABASE_ANON_KEY = 'sb_publishable_Vade1zUStf45qGu6vZ9bqA_6JjPcEsr';            // ضع مفتاح الـ API هنا
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/**
+ * دالة إضافة حجز جديد مع التحقق من تقاطع الأوقات
+ */
+async function bookRoom(roomId, userName, startTimeStr, endTimeStr) {
+  const newStart = new Date(startTimeStr).toISOString();
+  const newEnd = new Date(endTimeStr).toISOString();
+  const now = new Date().toISOString();
+
+  // التحقق من صحة الأوقات المدخلة
+  if (newStart >= newEnd) {
+    alert("خطأ: وقت الانتهاء يجب أن يكون بعد وقت البدء.");
+    return;
+  }
+
+  if (newStart < now) {
+    alert("خطأ: لا يمكنك الحجز في وقت مضى.");
+    return;
+  }
+
+  try {
+    // جلب الحجوزات المستقبلية أو النشطة حالياً لنفس القسم
+    const { data: existingBookings, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('room_id', roomId)
+      .gt('end_time', now);
+
+    if (error) throw error;
+
+    // التحقق من تقاطع الأوقات (Time Overlap Validation)
+    const isConflict = existingBookings.some(booking => {
+      const bStart = new Date(booking.start_time).getTime();
+      const bEnd = new Date(booking.end_time).getTime();
+      const nStart = new Date(newStart).getTime();
+      const nEnd = new Date(newEnd).getTime();
+
+      // شرط التقاطع: (بدء جديد < انتهاء قديم) وَ (انتهاء جديد > بدء قديم)
+      return nStart < bEnd && nEnd > bStart;
+    });
+
+    if (isConflict) {
+      alert("عذراً! هذا القسم محجوز بالفعل في هذه الفترة الزمنية.");
+      return;
+    }
+
+    // إضافة الحجز في حال عدم وجود تعارض
+    const { error: insertError } = await supabase
+      .from('bookings')
+      .insert([
+        {
+          room_id: roomId,
+          user_name: userName,
+          start_time: newStart,
+          end_time: newEnd
+        }
+      ]);
+
+    if (insertError) throw insertError;
+
+    alert("تم الحجز بنجاح!");
+
+  } catch (err) {
+    console.error("حدث خطأ أثناء عملية الحجز:", err.message);
+    alert("فشل إجراء الحجز، حاول مرة أخرى.");
+  }
+}
+
+/**
+ * دالة الاستماع للتغييرات الفورية لتحديث شكل الأقسام لدى جميع المستخدمين (Real-time UI)
+ */
+function listenToBookings(onBookingsUpdate) {
+  // دالة لجلب البيانات الحالية وتمرير الحجوزات النشطة فقط
+  const fetchAndNotify = async () => {
+    const now = new Date().toISOString();
+    const { data } = await supabase
+      .from('bookings')
+      .select('*')
+      .gt('end_time', now);
+
+    if (data) {
+      onBookingsUpdate(data);
+    }
+  };
+
+  // جلب أول مرة
+  fetchAndNotify();
+
+  // الاستماع المباشر للتغييرات في قاعدة البيانات
+  supabase
+    .channel('public:bookings')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+      fetchAndNotify();
+    })
+    .subscribe();
+}
+
+// ==========================================
+// كيفية تشغيل الكود مع عناصر موقعك (مثال للتوضيح)
+// ==========================================
+
+// تحديث واجهة المستخدم فور تغير البيانات
+listenToBookings((activeBookings) => {
+  // 1. إعادة ضبط جميع الأقسام لتظهر كأقسام غير محجوزة (مثلاً باللون الأخضر)
+  document.querySelectorAll('.room-card').forEach(card => {
+    card.classList.remove('is-booked');
+    card.style.borderColor = 'green';
+    const statusTag = card.querySelector('.status');
+    if (statusTag) statusTag.innerText = 'متاح';
+  });
+
+  // 2. تحديث القسم المحجوز الآن
+  activeBookings.forEach(booking => {
+    const roomCard = document.querySelector(`[data-room-id="${booking.room_id}"]`);
+    if (roomCard) {
+      roomCard.classList.add('is-booked');
+      roomCard.style.borderColor = 'red';
+      const statusTag = roomCard.querySelector('.status');
+      if (statusTag) {
+        statusTag.innerText = `محجوز لـ ${booking.user_name}`;
+      }
+    }
+  });
+});
+
+// مثال للربط مع زر الحجز عند الضغط عليه
+document.getElementById('booking-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const roomId = document.getElementById('room-id-input').value;
+  const userName = document.getElementById('user-name-input').value;
+  const startTime = document.getElementById('start-time-input').value; // صيغة: 2026-10-10T14:00
+  const endTime = document.getElementById('end-time-input').value;     // صيغة: 2026-10-10T16:00
+
+  bookRoom(roomId, userName, startTime, endTime);
+});
     </script>
